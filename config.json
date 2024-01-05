@@ -1,0 +1,13 @@
+{
+    "name": "GPS",
+    "description": "Mục mở rộng của Yolo UNO dùng cho module GPS",
+    "libs": [
+        "gps.py"
+    ],
+    "blocks": [
+        "definition.js"
+    ],
+    "toolbox": "toolbox.xml",
+    "languages": {},
+    "poster": "poster.png"
+}
