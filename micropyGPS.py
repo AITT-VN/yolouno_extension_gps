@@ -101,8 +101,9 @@ class MicropyGPS(object):
     
     async def read_input(self):
         buf = self._uart.readline()
-        for char in buf:
-            self.update(chr(char))
+        if buf != None:
+            for char in buf:
+                self.update(chr(char))
         await asyncio.sleep_ms(100)
 
     ########################################
