@@ -1,7 +1,7 @@
 <xml xmlns="https://developers.google.com/blockly/xml" id="toolbox" style="display: none">
   <category name="GPS" colour="#006666" icon="map">
-    <block type="uno_gps_create"/>
+    <block type="uno_gps_init"/>
+    <block type="uno_gps_ready"/>
     <block type="uno_gps_read"/>
-    <block type="uno_gps_update"/>
   </category>
 </xml>

@@ -1,70 +1,11 @@
 const GPSColorBlock = "#006666";
 
-var digitalPins = [
-    [
-        "D3",
-        "D3"
-    ],
-    [
-        "D4",
-        "D4"
-    ],
-    [
-        "D5",
-        "D5"
-    ],
-    [
-        "D6",
-        "D6"
-    ],
-    [
-        "D7",
-        "D7"
-    ],
-    [
-        "D8",
-        "D8"
-    ],
-    [
-        "D9",
-        "D9"
-    ],
-    [
-        "D10",
-        "D10"
-    ],
-    [
-        "D11",
-        "D11"
-    ],
-    [
-        "D12",
-        "D12"
-    ],
-    [
-        "D13",
-        "D13"
-    ],
-    [
-        "D0",
-        "D0"
-    ],
-    [
-        "D1",
-        "D1"
-    ],
-    [
-        "D2",
-        "D2"
-    ]
-];
-
-Blockly.Blocks['uno_gps_create'] = {
+Blockly.Blocks['uno_gps_init'] = {
     init: function () {
         this.jsonInit(
             {
-                type: "uno_gps_create",
-                message0: "khởi tạo GPS chân RX %1 chân TX %2",
+                type: "uno_gps_init",
+                message0: "khởi tạo GPS RX %1 TX %2 múi giờ %3",
                 previousStatement: null,
                 nextStatement: null,
                 args0: [
@@ -77,27 +18,60 @@ Blockly.Blocks['uno_gps_create'] = {
                         type: "field_dropdown",
                         name: "tx_pin",
                         options: digitalPins
+                    },
+                    {
+                        type: "field_dropdown",
+                        name: "gmt",
+                        options: [["GMT+7","7"], ["GMT+8","8"], ["GMT+9","9"], ["GMT+10","10"], ["GMT+11","11"], ["GMT+12","12"], ["GMT-11","-11"], ["GMT-10","-10"], ["GMT-9","-9"], ["GMT-8","-8"], ["GMT-7","-7"], ["GMT-6","-6"], ["GMT-5","-5"], ["GMT-4","-4"], ["GMT-3","-3"], ["GMT-2","-2"], ["GMT-1","-1"], ["GMT+0","0"], ["GMT+1","1"], ["GMT2","2"], ["GMT+3","3"], ["GMT+4","4"], ["GMT+5","5"], ["GMT+6","6"]]
                     }
+                    
                 ],
                 colour: GPSColorBlock,
-                tooltip: "khởi tạo kết nối UART",
+                tooltip: "khởi tạo module GPS với thông tin về UART và múi giờ",
                 helpUrl: ""
             }
         );
     }
 };
 
-Blockly.Python['uno_gps_create'] = function (block) {
+Blockly.Python['uno_gps_init'] = function (block) {
     var tx = block.getFieldValue('tx_pin');
     var rx = block.getFieldValue('rx_pin');
+    var gmt = block.getFieldValue('gmt');
     Blockly.Python.definitions_['import_machine'] = 'import machine';
-    Blockly.Python.definitions_['import_uno_gps'] = 'from gps import *';
-    Blockly.Python.definitions_['init_uart'] = 'uart = machine.UART(1, baudrate=9600, rx=' + rx + '.pin, tx=' + tx + '.pin, bits=8, parity=None, stop=1, timeout=5000, rxbuf=1024)';
-    Blockly.Python.definitions_['init_gps'] = 'gps = MicropyGPS()';
+    Blockly.Python.definitions_['import_uno_micropygps'] = 'from micropyGPS import *';
+    Blockly.Python.definitions_['init_micropygps'] = 'micropygps = MicropyGPS(' + rx + '_PIN, ' + tx + '_PIN, ' + gmt + ')';
+    Blockly.Python.definitions_['add_task_micropygps_read_input'] = 'create_task(micropygps.read_input())';
     // TODO: Assemble Python into code variable.
     var code = '';
     return code;
 };
+
+Blockly.Blocks['uno_gps_ready'] = {
+  init: function () {
+      this.jsonInit(
+          {
+              type: "uno_gps_ready",
+              message0: "GPS đã nhận tín hiệu",
+              args0: [
+              ],
+              output: "Boolean",
+              colour: GPSColorBlock,
+              tooltip: "",
+              helpUrl: ""
+          }
+      );
+  }
+};
+
+Blockly.Python['uno_gps_ready'] = function (block) {
+  // TODO: Assemble Python into code variable.
+
+  var code = "micropygps.latitude_decimal() != None";
+  // TODO: Change ORDER_NONE to the correct strength.
+  return [code, Blockly.Python.ORDER_NONE];
+};
+
 
 Blockly.Blocks['uno_gps_read'] = {
     init: function () {
@@ -111,24 +85,32 @@ Blockly.Blocks['uno_gps_read'] = {
                         name: "value",
                         options: [
                             [
-                                "giờ (GMT)",
+                                "giờ",
                                 "timestamp[0]"
                             ],
                             [
-                                "phút (GMT)",
+                                "phút",
                                 "timestamp[1]"
                             ],
                             [
-                                "giây (GMT)",
+                                "giây",
                                 "timestamp[2]"
                             ],
                             [
-                                "vĩ độ",
+                                "vĩ độ (string)",
                                 "latitude_string()"
                             ],
                             [
-                                "kinh độ",
+                                "vĩ độ (number)",
+                                "latitude_decimal()"
+                            ],
+                            [
+                                "kinh độ (string)",
                                 "longitude_string()"
+                            ],
+                            [
+                                "kinh độ (number)",
+                                "longitude_decimal()"
                             ],
                             [
                                 "độ cao",
@@ -139,7 +121,7 @@ Blockly.Blocks['uno_gps_read'] = {
                                 "satellites_in_use"
                             ],
                             [
-                                "ngày, tháng, năm (GMT)",
+                                "ngày, tháng, năm",
                                 "date_string('long')"
                             ],
                             [
@@ -163,29 +145,7 @@ Blockly.Python['uno_gps_read'] = function (block) {
     var value = block.getFieldValue('value');
     // TODO: Assemble Python into code variable.
 
-    var code = 'gps.' + value;
+    var code = 'micropygps.' + value;
     // TODO: Change ORDER_NONE to the correct strength.
     return [code, Blockly.Python.ORDER_NONE];
-};
-
-Blockly.Blocks['uno_gps_update'] = {
-    init: function () {
-        this.jsonInit(
-            {
-                type: "uno_gps_update",
-                message0: "cập nhập thông tin GPS",
-                previousStatement: null,
-                nextStatement: null,
-                colour: GPSColorBlock,
-                tooltip: "",
-                helpUrl: ""
-            }
-        );
-    }
-};
-
-Blockly.Python['uno_gps_update'] = function (block) {
-    // TODO: Assemble Python into code variable.
-    var code = 'buf = uart.readline()\n' + 'for char in buf:' + '\n' + '\tgps.update(chr(char))\n';
-    return code;
 };

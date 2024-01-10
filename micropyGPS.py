@@ -13,17 +13,9 @@
 
 from math import floor, modf
 
-from setting import *
-from utility import *
-
-# Import utime or time for fix time handling
-try:
-    # Assume running on MicroPython
-    import utime
-except ImportError:
-    # Otherwise default to time module for non-embedded implementations
-    # Should still support millisecond resolution.
-    import time
+import time
+import machine
+import asyncio
 
 
 class MicropyGPS(object):
@@ -42,7 +34,7 @@ class MicropyGPS(object):
                 'June', 'July', 'August', 'September', 'October',
                 'November', 'December')
 
-    def __init__(self, local_offset=0, location_formatting='ddm'):
+    def __init__(self, rx_pin, tx_pin, local_offset=0, location_formatting='ddm'):
         """
         Setup GPS Object Status Flags, Internal Data Registers, etc
             local_offset (int): Timzone Difference to UTC
@@ -102,6 +94,16 @@ class MicropyGPS(object):
         self.valid = False
         self.fix_stat = 0
         self.fix_type = 1
+
+        # UART object
+        self._uart = machine.UART(1, baudrate=9600, rx=rx_pin, tx=tx_pin, bits=8, parity=None, stop=1, timeout=5000, rxbuf=1024)
+
+    
+    async def read_input(self):
+        buf = self._uart.readline()
+        for char in buf:
+            self.update(chr(char))
+        await asyncio.sleep_ms(100)
 
     ########################################
     # Coordinates Translation Functions
@@ -727,6 +729,26 @@ class MicropyGPS(object):
             lat_string = str(self._latitude[0]) + '° ' + str(self._latitude[1]) + "' " + str(self._latitude[2])
         return lat_string
 
+    def latitude_decimal(self):
+        """
+        Convert current latitude data to number
+        :return: string
+        """
+        if self._latitude[0] == 0:  # sections[0] contains the degrees
+            return None
+    
+        # sections[1] contains the minutes
+        data = self._latitude[0] + (self._latitude[1] / 60.0)
+    
+        # sections[2] contains 'E', 'W', 'N', 'S'
+        if self._latitude[2] == 'S':
+            data = -data
+        if self._latitude[2] == 'W':
+            data = -data
+    
+        data = '{0:.6f}'.format(data)  # 6 decimal places
+        return str(data)
+
     def longitude_string(self):
         """
         Create a readable string of the current longitude data
@@ -742,6 +764,26 @@ class MicropyGPS(object):
             lon_string = str(self._longitude[0]) + '° ' + str(self._longitude[1]) + "' " + str(self._longitude[2])
         return lon_string
 
+    def longitude_decimal(self):
+        """
+        Convert current latitude data to number
+        :return: string
+        """
+        if self._longitude[0] == 0:  # sections[0] contains the degrees
+            return None
+    
+        # sections[1] contains the minutes
+        data = self._longitude[0] + (self._longitude[1] / 60.0)
+    
+        # sections[2] contains 'E', 'W', 'N', 'S'
+        if self._longitude[2] == 'S':
+            data = -data
+        if self._longitude[2] == 'W':
+            data = -data
+    
+        data = '{0:.6f}'.format(data)  # 6 decimal places
+        return str(data)
+    
     def speed_string(self, unit='kph'):
         """
         Creates a readable string of the current speed data in one of three units

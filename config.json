@@ -2,7 +2,7 @@
     "name": "GPS",
     "description": "Mục mở rộng của Yolo UNO dùng cho module GPS",
     "libs": [
-        "gps.py"
+        "micropyGPS.py"
     ],
     "blocks": [
         "definition.js"
