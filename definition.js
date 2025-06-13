@@ -5,7 +5,7 @@ Blockly.Blocks['uno_gps_init'] = {
         this.jsonInit(
             {
                 type: "uno_gps_init",
-                message0: "khởi tạo GPS RX %1 TX %2 múi giờ %3",
+                message0: "khởi tạo GPS TX %1 RX %2 múi giờ %3",
                 previousStatement: null,
                 nextStatement: null,
                 args0: [
